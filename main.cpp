@@ -118,6 +118,19 @@ int main()
     glDeleteShader(vertextShader);
     glDeleteShader(fragmentShader);
 
+    // Tell OpenGL how to view the vertex array data we're passing into
+    // the vertex shader (vec 3's, each containing 4byte floats)
+    // * which vertex attribute? We specified location = 0 in the vertex shader
+    // * how man values in each vertex? 3
+    // * GL data type for each vertex member? GL_FLOAT
+    // * Normalize the data? Not right now
+    // * What's the stride between each vertex attribute? The array is tightly packed
+    //     so we can just use thw width of the float itself
+    // * Offset? 0 since the position data is at the start of the array. Use the
+    //   weird case to satisfy the function prototype
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
 
     // render loop
     // -----------
