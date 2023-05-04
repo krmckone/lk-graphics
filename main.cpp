@@ -3,6 +3,20 @@
 
 #include <iostream>
 
+const char *vertexShaderSource = "#version 330 core\n"
+    "layout (location = 0) in vec3 aPos;\n"
+    "void main()\n"
+    "{\n"
+    " gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "}\0";
+
+const char *fragmentShaderSource = "#version 330 core \n"
+    "out vec4 FragColor;\n"
+    "void main()\n"
+    "{\n"
+    " FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "}\0";
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 
@@ -42,6 +56,81 @@ int main()
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }    
+
+    // These vertices are already in normalized device coordinates.
+    // This is a special case; generally the vertex shader receives
+    // non-normalized vertex coordinates and needs to deal with them
+    // accordingly.
+    const float vertices[] = {
+        -0.5f, -0.5f, 0.0f,
+        0.5f, -0.5f, 0.0f,
+        0.0f, 0.5f, 0.0f
+    };
+
+    // Setup the vertex buffer object
+    unsigned int VBO;
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    // Setup the vertex shader
+    unsigned int vertextShader;
+    vertextShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertextShader, 1, &vertexShaderSource, NULL);
+    glCompileShader(vertextShader);
+    int vertexShaderSuccess;
+    char vertexShaderinfoLog[512];
+    glGetShaderiv(vertextShader, GL_COMPILE_STATUS, &vertexShaderSuccess);
+    if (!vertexShaderSuccess) {
+        glGetShaderInfoLog(vertextShader, 512, NULL, vertexShaderinfoLog);
+        std::cout << "Vertex shader compile failure\n" << vertexShaderinfoLog << std::endl;
+    }
+
+    // Setup the fragment shader
+    unsigned int fragmentShader;
+    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glCompileShader(fragmentShader);
+    int fragmentShaderSuccess;
+    char fragmentShaderInfoLog[512];
+    glGetShaderiv(vertextShader, GL_COMPILE_STATUS, &fragmentShaderSuccess);
+    if (!fragmentShaderSuccess) {
+        glGetShaderInfoLog(vertextShader, 512, NULL, fragmentShaderInfoLog);
+        std::cout << "Fragment shader compile failure\n" << fragmentShaderInfoLog << std::endl;
+    }
+
+    // Setup the shader program using our vertex and
+    // fragment shader objects
+    unsigned int shaderProgram;
+    shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertextShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+    int linkShaderSuccess;
+    char linkShaderInfoLog[512];
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &linkShaderSuccess);
+    if (!linkShaderSuccess) {
+        glGetProgramInfoLog(shaderProgram, 512, NULL, linkShaderInfoLog);
+        std::cout << "Shader program link failure\n" << linkShaderInfoLog << std::endl;
+    }
+    glUseProgram(shaderProgram);
+    // Clean up the shader objects after linking
+    glDeleteShader(vertextShader);
+    glDeleteShader(fragmentShader);
+
+    // Tell OpenGL how to view the vertex array data we're passing into
+    // the vertex shader (vec 3's, each containing 4byte floats)
+    // * which vertex attribute? We specified location = 0 in the vertex shader
+    // * how man values in each vertex? 3
+    // * GL data type for each vertex member? GL_FLOAT
+    // * Normalize the data? Not right now
+    // * What's the stride between each vertex attribute? The array is tightly packed
+    //     so we can just use thw width of the float itself
+    // * Offset? 0 since the position data is at the start of the array. Use the
+    //   weird case to satisfy the function prototype
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
 
     // render loop
     // -----------
