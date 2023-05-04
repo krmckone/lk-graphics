@@ -3,6 +3,13 @@
 
 #include <iostream>
 
+const char *vertexShaderSource = "#version 330 core\n"
+    "layout (location = 0) in vec3 aPos;\n"
+    "void main()\n"
+    "{\n"
+    " gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "}\0";
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 
@@ -42,6 +49,29 @@ int main()
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }    
+
+    const float vertices[] = {
+        -0.5f, -0.5f, 0.0f,
+        0.5f, -0.5f, 0.0f,
+        0.0f, 0.5f, 0.0f
+    };
+
+    unsigned int VBO;
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    unsigned int vertextShader;
+    vertextShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertextShader, 1, &vertexShaderSource, NULL);
+    glCompileShader(vertextShader);
+    int success;
+    char infoLog[512];
+    glGetShaderiv(vertextShader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(vertextShader, 512, NULL, infoLog);
+        std::cout << "Vertex shader compile failure\n" << infoLog << std::endl;
+    }
 
     // render loop
     // -----------
