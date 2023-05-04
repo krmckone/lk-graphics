@@ -99,6 +99,26 @@ int main()
         std::cout << "Fragment shader compile failure\n" << fragmentShaderInfoLog << std::endl;
     }
 
+    // Setup the shader program using our vertex and
+    // fragment shader objects
+    unsigned int shaderProgram;
+    shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertextShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+    int linkShaderSuccess;
+    char linkShaderInfoLog[512];
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &linkShaderSuccess);
+    if (!linkShaderSuccess) {
+        glGetProgramInfoLog(shaderProgram, 512, NULL, linkShaderInfoLog);
+        std::cout << "Shader program link failure\n" << linkShaderInfoLog << std::endl;
+    }
+    glUseProgram(shaderProgram);
+    // Clean up the shader objects after linking
+    glDeleteShader(vertextShader);
+    glDeleteShader(fragmentShader);
+
+
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
